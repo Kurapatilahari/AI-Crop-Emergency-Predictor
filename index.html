@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Crop Emergency Predictor</title>
+<style>
+:root{--green:#1f7a4d;--dark:#163b2b;--bg:#f3f7f2;--card:#fff;--muted:#637268;--border:#dce7dd}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#1c2b22}
+header{background:linear-gradient(120deg,#164b32,#2e8a55);color:white;padding:24px max(20px,calc((100% - 1100px)/2));}
+header h1{margin:0;font-size:clamp(23px,4vw,34px)}header p{margin:5px 0 0;color:#e0f2e6}
+main{max-width:1100px;margin:22px auto;padding:0 16px 40px}.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+button,.tab{border:0;border-radius:10px;padding:10px 15px;background:#e1eee4;color:#205237;font-weight:650;cursor:pointer}
+button.primary{background:var(--green);color:white}button.secondary{background:#edf2ee;color:#314a39}button.danger{background:#fff0ed;color:#a33b2b}
+button:hover,.tab:hover{filter:brightness(.97)}.tab.active{background:#1f7a4d;color:#fff}
+.layout{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:0 4px 18px #173e2810}
+h2{font-size:19px;margin:0 0 14px;color:var(--dark)}h3{margin:0 0 8px;font-size:16px}.muted{color:var(--muted);font-size:13px}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:13px}label{display:block;font-size:13px;font-weight:650;color:#34483a;margin-bottom:5px}input,select{width:100%;padding:11px;border:1px solid #cbd9ce;border-radius:9px;background:white;color:#1c2b22;font:inherit}input:focus,select:focus{outline:2px solid #9ac9aa;border-color:#3c9360}.wide{grid-column:1/-1}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.result{border-radius:14px;padding:17px;margin-bottom:13px;background:#eef5ef;border:1px solid #dbe8dc}.riskpill{display:inline-block;border-radius:30px;padding:5px 11px;font-weight:800;font-size:12px;letter-spacing:.4px}.green{background:#d8f3df;color:#176638}.amber{background:#fff0c4;color:#815400}.red{background:#ffe0dc;color:#9d2c20}
+.metricrow{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:14px 0}.metric{padding:12px;background:#f6f9f6;border-radius:10px}.metric strong{display:block;font-size:20px;color:var(--dark)}.metric span{font-size:12px;color:var(--muted)}
+ul{padding-left:20px;margin:8px 0}.hidden{display:none!important}.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}.stat{padding:17px}.stat strong{display:block;font-size:27px;color:var(--green)}.stat span{font-size:13px;color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--border)}th{color:#4e6254;background:#f7faf7}.tablewrap{overflow:auto}.empty{text-align:center;padding:25px;color:var(--muted)}.feedbackbox{padding:12px;border:1px dashed #c6d9ca;border-radius:10px;margin-top:12px}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.formgrid{grid-template-columns:1fr 1fr}.statgrid{grid-template-columns:1fr 1fr}.card{padding:16px}}
+@media(max-width:440px){.formgrid{grid-template-columns:1fr}.wide{grid-column:auto}.metricrow{grid-template-columns:1fr 1fr}}
+</style></head>
+<body>
+<header><h1>🌱 AI Crop Emergency Predictor</h1><p>See the storm before the field does · Simple crop risk early-warning dashboard</p></header>
+<main>
+<div class="nav"><button class="tab active" data-view="predict">New Prediction</button><button class="tab" data-view="dashboard">Dashboard & History</button><button class="tab" data-view="about">How it works</button></div>
+<section id="predict">
+<div class="layout">
+<div class="card"><h2>Field conditions</h2><p class="muted">Enter the latest weather, soil and crop observations. Fields marked * are required.</p>
+<form id="cropForm"><div class="formgrid">
+<div><label for="field">Field / farmer name *</label><input id="field" required placeholder="e.g. Field A"></div>
+<div><label for="crop">Crop *</label><select id="crop" required><option value="">Select crop</option><option>Rice</option><option>Maize</option><option>Wheat</option><option>Cotton</option><option>Chilli</option><option>Groundnut</option><option>Other</option></select></div>
+<div><label for="temp">Temperature (°C) *</label><input id="temp" type="number" min="-10" max="60" step="0.1" value="30" required></div>
+<div><label for="humidity">Humidity (%) *</label><input id="humidity" type="number" min="0" max="100" value="60" required></div>
+<div><label for="rain">Rainfall last 24h (mm) *</label><input id="rain" type="number" min="0" max="1000" step="0.1" value="5" required></div>
+<div><label for="wind">Wind speed (km/h)</label><input id="wind" type="number" min="0" max="300" step="0.1" value="8"></div>
+<div><label for="moisture">Soil moisture (%) *</label><input id="moisture" type="number" min="0" max="100" value="45" required></div>
+<div><label for="ph">Soil pH *</label><input id="ph" type="number" min="0" max="14" step="0.1" value="6.5" required></div>
+<div><label for="salinity">Salinity (dS/m)</label><input id="salinity" type="number" min="0" max="100" step="0.1" value="1"></div>
+<div><label for="ndvi">Vegetation health (NDVI 0–1)</label><input id="ndvi" type="number" min="0" max="1" step="0.01" value="0.65"></div>
+<div class="wide"><label for="notes">Notes (optional)</label><input id="notes" placeholder="Recent crop changes or observations"></div>
+</div><div class="actions"><button class="primary" type="submit">Analyze crop risk</button><button class="secondary" type="reset">Reset form</button></div></form>
+<p class="muted">Demo note: risk is estimated using transparent rule-based checks, not a trained or validated AI model.</p></div>
+<div class="card"><h2>Latest prediction</h2><div id="resultPlaceholder" class="empty">Enter field conditions and choose <b>Analyze crop risk</b> to see the result.</div>
+<div id="resultContent" class="hidden"><div class="result"><span id="riskPill" class="riskpill">RISK</span><h3 id="riskTitle" style="margin-top:10px">Risk assessment</h3><p id="summary"></p></div>
+<div class="metricrow"><div class="metric"><strong id="riskScore">—</strong><span>Risk score / 100</span></div><div class="metric"><strong id="threatCount">—</strong><span>Warning signs</span></div><div class="metric"><strong id="when">—</strong><span>Suggested response</span></div></div>
+<h3>Possible threats</h3><ul id="threats"></ul><h3>Recommended actions</h3><ul id="actionsList"></ul>
+<div class="feedbackbox"><label for="actual">Later, what actually happened?</label><select id="actual"><option value="">Select outcome (optional)</option><option>Healthy / no emergency</option><option>Drought or low moisture</option><option>Heat stress</option><option>Waterlogging</option><option>Possible disease / pest</option><option>Nutrient / soil issue</option></select><button class="secondary" id="saveFeedback" style="margin-top:8px">Save field outcome</button><p class="muted" id="feedbackMsg"></p></div>
+</div></div></div></section>
+<section id="dashboard" class="hidden"><div class="statgrid"><div class="card stat"><strong id="totalCount">0</strong><span>Total predictions saved</span></div><div class="card stat"><strong id="highCount">0</strong><span>Amber / Red predictions</span></div><div class="card stat"><strong id="feedbackCount">0</strong><span>Outcomes recorded</span></div></div><div class="card"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><h2>Prediction history</h2><div class="actions" style="margin:0"><button class="secondary" id="exportBtn">Export CSV</button><button class="danger" id="clearBtn">Clear history</button></div></div><div class="tablewrap" id="historyWrap"></div><p class="muted">History is stored in this browser on this device.</p></div></section>
+<section id="about" class="hidden"><div class="card"><h2>How it works</h2><p>This student project follows the abstract’s three input groups: weather, soil and crop-growth condition. The app checks for warning signs and translates them into Green (safe), Amber (watch closely) or Red (act immediately).</p><ol><li><b>Collect:</b> enter temperature, humidity, rainfall, wind, soil moisture, pH, salinity and vegetation health (NDVI).</li><li><b>Analyze:</b> simple rule-based checks estimate risk and identify possible stress types.</li><li><b>Respond:</b> read practical suggestions such as irrigation, drainage or field inspection.</li><li><b>Learn from feedback:</b> record what actually happened and export records as CSV for later model development.</li></ol><p><b>Important limitation:</b> this working prototype does not connect to live weather APIs, physical sensors, satellite feeds, SMS or a trained LSTM/Random Forest/XGBoost model. It is an educational decision-support demo, not a substitute for agronomist advice. Recommendations depend on entered values and should be verified locally.</p></div></section>
+</main><footer>AI Crop Emergency Predictor · Student prototype · Your entries stay in this browser</footer>
+<script>
+const $=id=>document.getElementById(id);
+const KEY='cropPredictorRecordsV1';let records=loadRecords();let latestId=null;
+function loadRecords(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return []}}
+function persist(){localStorage.setItem(KEY,JSON.stringify(records));renderHistory()}
+function n(id){return Number($(id).value)}
+function analyze(d){
+ let warnings=[],actions=[],score=0;
+ if(d.moisture<20){warnings.push('Very low soil moisture — drought / water stress');score+=32;actions.push('Check soil moisture at root depth; irrigate in a measured way if water is available.')}
+ else if(d.moisture<30){warnings.push('Low soil moisture — possible water stress');score+=18;actions.push('Monitor the field and plan irrigation based on crop stage and local guidance.')}
+ if(d.temp>=38){warnings.push('Very high temperature — heat stress possible');score+=25;actions.push('Avoid water stress during hot periods and seek local advice on heat protection.')}
+ else if(d.temp>=34){warnings.push('High temperature — watch for heat stress');score+=12;actions.push('Check leaves for wilting and monitor temperature during the next few days.')}
+ if(d.rain>=100){warnings.push('Very heavy rainfall — waterlogging / runoff risk');score+=28;actions.push('Inspect drainage and remove standing water where safe and appropriate.')}
+ else if(d.rain>=50){warnings.push('Heavy rainfall — waterlogging risk');score+=15;actions.push('Check low-lying areas and field drains after rainfall.')}
+ if(d.ph<5.5||d.ph>7.8){warnings.push('Soil pH outside the broad 5.5–7.8 screening range');score+=16;actions.push('Confirm pH with a reliable soil test before applying amendments.')}
+ if(d.salinity>4){warnings.push('Elevated soil salinity reading');score+=18;actions.push('Verify salinity with a soil test and consult local agricultural guidance on management.')}
+ if(d.ndvi<0.35){warnings.push('Low vegetation-health index — crop stress may be present');score+=22;actions.push('Inspect plants for discoloration, pests, disease and uneven growth; NDVI alone cannot diagnose a cause.')}
+ else if(d.ndvi<0.5){warnings.push('Vegetation-health index is lower than expected');score+=10;actions.push('Compare with previous field observations and inspect affected patches.')}
+ if(d.humidity>85&&d.temp>=20){warnings.push('Warm, humid conditions — some disease risks may increase');score+=12;actions.push('Inspect leaves for spots or fungal symptoms and follow crop-specific local advisories.')}
+ if(d.wind>=40){warnings.push('Strong wind — physical crop damage may occur');score+=12;actions.push('Inspect for lodging or broken branches after wind conditions ease.')}
+ score=Math.min(100,score);
+ let level=score>=45?'RED':score>=20?'AMBER':'GREEN';
+ if(!warnings.length){warnings=['No major warning sign was detected by these simple checks.'];actions.push('Continue routine monitoring and compare readings over time.')}
+ if(level==='GREEN') actions.unshift('Continue regular monitoring; a green result does not guarantee the crop is problem-free.');
+ if(level==='RED') actions.unshift('Act promptly: inspect the field and contact a local agriculture officer for crop-specific advice.');
+ return {score,level,warnings,actions,when:level==='RED'?'Act now':level==='AMBER'?'Check soon':'Routine checks',summary:level==='RED'?'Several or strong warning signs were found. Inspect the field promptly.':level==='AMBER'?'One or more warning signs need close monitoring.':'No major risk signal was found in the entered readings.'};
+}
+function currentData(){return {field:$('field').value.trim(),crop:$('crop').value,temp:n('temp'),humidity:n('humidity'),rain:n('rain'),wind:$('wind').value===''?0:n('wind'),moisture:n('moisture'),ph:n('ph'),salinity:$('salinity').value===''?0:n('salinity'),ndvi:$('ndvi').value===''?0.65:n('ndvi'),notes:$('notes').value.trim()}}
+$('cropForm').addEventListener('submit',e=>{e.preventDefault();const d=currentData();const r=analyze(d);const item={id:Date.now(),date:new Date().toISOString(),...d,...r,actual:''};records.unshift(item);latestId=item.id;persist();showResult(item);});
+function showResult(x){$('resultPlaceholder').classList.add('hidden');$('resultContent').classList.remove('hidden');$('riskPill').textContent=x.level==='RED'?'RED · ACT IMMEDIATELY':x.level==='AMBER'?'AMBER · WATCH CLOSELY':'GREEN · SAFE';$('riskPill').className='riskpill '+x.level.toLowerCase();$('riskTitle').textContent=x.level==='RED'?'High risk detected':x.level==='AMBER'?'Watch the crop closely':'Low risk detected';$('summary').textContent=x.summary;$('riskScore').textContent=x.score;$('threatCount').textContent=x.warnings.filter(a=>!a.startsWith('No major')).length;$('when').textContent=x.when;$('threats').innerHTML=x.warnings.map(t=>'<li>'+esc(t)+'</li>').join('');$('actionsList').innerHTML=x.actions.map(t=>'<li>'+esc(t)+'</li>').join('');$('actual').value=x.actual||'';$('feedbackMsg').textContent=x.actual?'Saved outcome: '+x.actual:''}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+$('saveFeedback').addEventListener('click',()=>{if(latestId===null){$('feedbackMsg').textContent='Please analyze a field first.';return}const v=$('actual').value;if(!v){$('feedbackMsg').textContent='Choose an outcome first.';return}const r=records.find(x=>x.id===latestId);if(r){r.actual=v;persist();$('feedbackMsg').textContent='Outcome saved successfully.'}});
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===b));['predict','dashboard','about'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.view));if(b.dataset.view==='dashboard')renderHistory()}));
+function renderHistory(){const high=records.filter(r=>r.level!=='GREEN').length;$('totalCount').textContent=records.length;$('highCount').textContent=high;$('feedbackCount').textContent=records.filter(r=>r.actual).length;if(!records.length){$('historyWrap').innerHTML='<div class="empty">No predictions yet. Create your first prediction in the New Prediction tab.</div>';return} $('historyWrap').innerHTML='<table><thead><tr><th>Date</th><th>Field</th><th>Crop</th><th>Risk</th><th>Score</th><th>Outcome</th><th></th></tr></thead><tbody>'+records.map(r=>`<tr><td>${esc(new Date(r.date).toLocaleString())}</td><td>${esc(r.field)}</td><td>${esc(r.crop)}</td><td><span class="riskpill ${r.level.toLowerCase()}">${r.level}</span></td><td>${r.score}/100</td><td>${esc(r.actual||'Not recorded')}</td><td><button class="secondary" data-open="${r.id}">View</button></td></tr>`).join('')+'</tbody></table>';document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>{const r=records.find(x=>x.id===Number(b.dataset.open));if(r){latestId=r.id;showResult(r);document.querySelector('[data-view="predict"]').click()}}))}
+$('exportBtn').addEventListener('click',()=>{if(!records.length){alert('No records to export yet.');return}const keys=['date','field','crop','temp','humidity','rain','wind','moisture','ph','salinity','ndvi','score','level','warnings','actions','actual','notes'];const csv=[keys.join(','),...records.map(r=>keys.map(k=>'"'+String(Array.isArray(r[k])?r[k].join('; '):(r[k]??'')).replace(/"/g,'""')+'"').join(','))].join('\r\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='crop-prediction-history.csv';a.click();URL.revokeObjectURL(url)});
+$('clearBtn').addEventListener('click',()=>{if(confirm('Delete all saved predictions and feedback from this browser?')){records=[];latestId=null;localStorage.removeItem(KEY);renderHistory();$('resultContent').classList.add('hidden');$('resultPlaceholder').classList.remove('hidden')}});
+$('cropForm').addEventListener('reset',()=>setTimeout(()=>{ $('resultContent').classList.add('hidden');$('resultPlaceholder').classList.remove('hidden')},0));
+renderHistory();
+</script></body></html>
